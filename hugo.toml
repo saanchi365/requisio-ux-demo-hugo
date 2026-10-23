@@ -1,0 +1,8 @@
+# Hugo settings for the Requisio handbook (Hugo version of the comparison).
+baseURL = "https://saanchi365.github.io/requisio-ux-demo-hugo/"
+title = "Requisio handbook"
+locale = "en"
+disableKinds = ["taxonomy", "term", "rss", "sitemap", "robotstxt", "404"]
+
+[markup.goldmark.renderer]
+  unsafe = true

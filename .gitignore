@@ -1,7 +1,6 @@
-# Made by scripts/build_handbook.py on every publish, so they are never edited by hand
-docs/index.md
-docs/requirements.md
-docs/features/
-docs/wireframes/
-site/
-docs/handbook-data.json
+# Made fresh on every build
+data/handbook.json
+static/wireframes/
+public/
+resources/
+.hugo_build.lock

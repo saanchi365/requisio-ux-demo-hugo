@@ -1,0 +1,11 @@
+{{ define "main" }}
+{{ if .Params.doc }}
+  {{ $d := hugo.Data.handbook }}
+  <nav class="hb-crumb"><a href="{{ "all/overview/" | relURL }}">{{ $d.name }}</a> › <span>About users</span></nav>
+  <h1>{{ .Title }}</h1>
+  <nav class="hb-tabs">{{ range $k, $v := $d.users }}<a class="{{ if eq $k $.Params.doc }}on{{ end }}" href="{{ printf "users/%s/" $k | relURL }}">{{ $v.title }}</a>{{ end }}</nav>
+  <div class="cd users-doc">{{ .Content }}</div>
+{{ else }}
+  {{ partial "body.html" (dict "scope" .Params.scope "tab" .Params.tab) }}
+{{ end }}
+{{ end }}

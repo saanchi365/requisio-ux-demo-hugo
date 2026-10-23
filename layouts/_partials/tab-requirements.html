@@ -1,0 +1,38 @@
+{{- /* Requirements: the same table for all features and one feature; open questions underneath. */ -}}
+{{ $d := .d }}{{ $f := .f }}
+{{ $list := $d.requirements }}{{ $sum := $d.summary }}{{ $qs := $d.all_questions }}
+{{ if $f }}{{ $list = where $d.requirements "feature" $f.n }}{{ $sum = $f.summary }}{{ $qs = $f.all_questions }}{{ end }}
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px">
+  <div class="cd"><div class="lbl">Overdue</div><div class="big" style="color:var(--late)">{{ $sum.Overdue }}</div></div>
+  <div class="cd"><div class="lbl">Due this week</div><div class="big">{{ $sum.due_soon }}</div></div>
+  <div class="cd"><div class="lbl">Done</div><div class="big">{{ $sum.Done }}<span class="mu" style="font-size:16px;font-weight:500"> of {{ $sum.total }}</span></div></div>
+</div>
+<div data-reqs>
+  <div class="chips" role="group" aria-label="Filter by status">{{ range slice "All" "In progress" "Overdue" "To do" "Done" }}<button class="chip {{ if eq . "All" }}on{{ end }}" data-flt="{{ . }}">{{ . }}</button>{{ end }}</div>
+  <p class="xs" style="margin:0 0 8px" data-count>{{ len $list }} of {{ len $list }} requirements</p>
+  {{ if $list }}
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Requirement</th>{{ if not $f }}<th>Feature</th>{{ end }}<th>Status</th><th>Target</th><th>Assigned to</th><th>Given by</th><th>Priority</th><th>Wireframe</th><th>Comments</th></tr></thead>
+    <tbody>
+    {{ range $list }}
+      <tr id="r-{{ .n }}" data-status="{{ .status }}">
+        <td class="num">#{{ .n }}</td>
+        <td><span style="display:flex;gap:6px;align-items:center;padding-left:{{ if .parent }}18{{ else }}0{{ end }}px">{{ if .parent }}<span class="xs">↳</span>{{ end }}{{ .title }}</span></td>
+        {{ if not $f }}{{ $rf := index (where $d.features "n" .feature) 0 }}<td><a href="{{ printf "feature-%d/requirements/" (int .feature) | relURL }}">{{ $rf.title }}</a></td>{{ end }}
+        <td>{{ partial "pill.html" .status }}</td>
+        <td class="num">{{ .target_text | default "—" }}</td>
+        <td>{{ with .assignees }}{{ delimit . ", " }}{{ else }}<span class="xs">Not assigned</span>{{ end }}</td>
+        <td>{{ .given_by | default "—" }}</td>
+        <td>{{ .priority | default "—" }}</td>
+        <td>{{ if .wireframe }}<a href="{{ printf "feature-%d/wireframes/#screen-%s" (int .feature) .wireframe | relURL }}">View</a>{{ else }}<span class="xs">None yet</span>{{ end }}</td>
+        <td class="num">{{ if .comment_count }}{{ .comment_count }}{{ else }}<span class="xs">—</span>{{ end }}</td>
+      </tr>
+    {{ end }}
+    </tbody></table></div>
+  {{ else }}<div class="empty"><b>No requirements yet</b>Add them as sub-issues of this feature on GitHub.</div>{{ end }}
+</div>
+<div class="cd" style="margin-top:14px"><div class="lbl">{{ partial "icon.html" "alert" }} Open questions{{ with $qs }} · {{ len . }}{{ end }}</div>
+  {{ range $qs }}
+    <div class="row"><span class="sm">{{ .q }}</span>{{ with .n }}{{ $r := index (where $d.requirements "n" .) 0 }}<a class="xs" href="#r-{{ . }}" data-hl="{{ . }}" style="text-align:right">#{{ . }} {{ $r.title }}</a>{{ else }}<span class="xs">{{ if $f }}Whole feature{{ else }}{{ with .feature }}{{ $rf := index (where $d.features "n" .) 0 }}{{ $rf.title }}{{ end }}{{ end }}</span>{{ end }}</div>
+  {{ else }}<p class="mu sm" style="margin:0">No open questions on these requirements.</p>{{ end }}
+</div>

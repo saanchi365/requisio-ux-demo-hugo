@@ -1,0 +1,23 @@
+{{- /* One page of the handbook: breadcrumb, title, the five tabs, then the chosen tab. scope = "all" or a feature number. */ -}}
+{{ $d := hugo.Data.handbook }}
+{{ $scope := .scope }}{{ $tab := .tab }}
+{{ $f := false }}{{ $base := "all/" }}
+{{ if ne $scope "all" }}{{ $f = index (where $d.features "n" $scope) 0 }}{{ $base = printf "feature-%d/" (int $f.n) }}{{ end }}
+{{ $labels := dict "overview" "Overview" "wireframes" "Wireframes" "flowcharts" "Flowcharts" "requirements" "Requirements" "comments" "Comments" }}
+{{ $counts := dict }}
+{{ if $f }}
+  {{ $counts = dict "wireframes" (len $f.wireframes) "requirements" (len $f.requirement_list) "comments" (len $f.comment_list) }}
+{{ else }}
+  {{ $counts = dict "wireframes" (len $d.wireframes) "requirements" (len $d.requirements) "comments" (len $d.comments) }}
+{{ end }}
+<nav class="hb-crumb" aria-label="Breadcrumb"><a href="{{ "all/overview/" | relURL }}">All features</a>{{ with $f }} › <a href="{{ printf "%soverview/" $base | relURL }}">{{ .title }}</a>{{ end }} › <span>{{ index $labels $tab }}</span></nav>
+<h1>{{ if $f }}{{ $f.title }}{{ else }}All features{{ end }}</h1>
+<nav class="hb-tabs" aria-label="What to see">
+  {{ range slice "overview" "wireframes" "flowcharts" "requirements" "comments" }}
+    <a class="{{ if eq . $tab }}on{{ end }}" href="{{ printf "%s%s/" $base . | relURL }}">{{ index $labels . }}{{ with index $counts . }} <span class="n">{{ . }}</span>{{ end }}</a>
+  {{ end }}
+</nav>
+{{ partial (printf "tab-%s.html" $tab) (dict "d" $d "f" $f "base" $base) }}
+<footer class="foot"><span>Status colours:</span>
+  <span><span class="dot d-done"></span>Done</span><span><span class="dot d-prog"></span>In progress</span><span><span class="dot d-late"></span>Overdue</span><span><span class="dot d-todo"></span>To do</span>
+  <span style="margin-left:auto">Built with Hugo · data from <a href="https://github.com/{{ $d.repo }}">{{ $d.repo }}</a></span></footer>

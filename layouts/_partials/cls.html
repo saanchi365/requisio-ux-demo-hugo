@@ -1,0 +1,3 @@
+{{- $c := "todo" -}}
+{{- if eq . "Done" }}{{ $c = "done" }}{{ else if eq . "In progress" }}{{ $c = "prog" }}{{ else if eq . "Overdue" }}{{ $c = "late" }}{{ end -}}
+{{- return $c -}}

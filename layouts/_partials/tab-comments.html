@@ -1,0 +1,13 @@
+{{- /* Comments: comments made on the GitHub issues of this feature (or all), newest first. */ -}}
+{{ $d := .d }}{{ $f := .f }}
+{{ $idx := slice }}{{ if $f }}{{ $idx = $f.comment_list }}{{ else }}{{ range $i, $_ := $d.comments }}{{ $idx = $idx | append $i }}{{ end }}{{ end }}
+<div class="bar-row"><div class="statusline"><span class="sm">Comments made on the GitHub issues{{ if $f }} of this feature and its requirements{{ end }}. Commenting right on this website (select text, comment on a screen) comes with the comment service.</span></div>
+  <a class="hb-ib pri" href="{{ if $f }}{{ $f.url }}{{ else }}https://github.com/{{ $d.repo }}/issues{{ end }}">Comment on GitHub ↗</a></div>
+{{ range sort $idx "value" "desc" }}{{ $c := index $d.comments . }}
+  {{ $r := false }}{{ with where $d.requirements "n" $c.issue }}{{ $r = index . 0 }}{{ end }}
+  <div class="cmt"><div class="who"><span class="av">{{ substr $c.author 0 2 | upper }}</span><div><b class="sm">{{ $c.author }}</b> <span class="xs">{{ $c.when }}</span>
+    <div class="xs">on {{ with $r }}<a href="{{ printf "feature-%d/requirements/#r-%d" (int .feature) (int .n) | relURL }}">#{{ .n }} {{ .title }}</a>{{ else }}{{ with where $d.features "n" $c.issue }}{{ $cf := index . 0 }}<a href="{{ printf "feature-%d/overview/" (int $cf.n) | relURL }}">{{ $cf.title }}</a>{{ else }}#{{ $c.issue }}{{ end }}{{ end }} · <a href="{{ $c.url }}">View on GitHub ↗</a></div></div></div>
+    <div class="body">{{ $c.body }}</div></div>
+{{ else }}
+  <div class="empty"><b>No comments yet</b>Comments made on this feature's GitHub issues will show here.</div>
+{{ end }}

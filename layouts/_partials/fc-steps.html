@@ -1,0 +1,8 @@
+{{- /* What is inside a flowchart, as plain numbered steps; decisions marked with a diamond. */ -}}
+{{ $n := 0 }}
+<div class="fcin" data-steps>
+  {{ range .steps }}
+    {{ if eq .kind "decision" }}<div class="fcstep dec">◇ {{ .label }}</div>
+    {{ else }}{{ $n = add $n 1 }}<div class="fcstep">{{ $n }}. {{ .label }}</div>{{ end }}
+  {{ end }}
+</div>

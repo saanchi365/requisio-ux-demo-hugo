@@ -1,0 +1,5 @@
+{{ define "main" }}
+{{ $to := "overview/" }}{{ if eq .Section "users" }}{{ $to = "user-understanding/" }}{{ end }}
+<meta http-equiv="refresh" content="0; url={{ $to }}">
+<p><a href="{{ $to }}">Continue</a></p>
+{{ end }}

@@ -1,0 +1,60 @@
+{{- /* Overview: brief (+ use cases), soonest-due requirements and recent changes | progress and open questions */ -}}
+{{ $d := .d }}{{ $f := .f }}{{ $base := .base }}
+{{ $soon := $d.soonest }}{{ $sum := $d.summary }}{{ $qs := $d.all_questions }}{{ $recent := $d.recent }}
+{{ if $f }}{{ $soon = $f.soonest }}{{ $sum = $f.summary }}{{ $qs = $f.all_questions }}{{ $recent = $f.recent }}{{ end }}
+
+{{ if $f }}
+  <p class="brief">{{ $f.what | markdownify }}</p>
+  {{ with $f.use_cases }}<details class="ucx"><summary>Use cases · {{ len . }}</summary><ol>{{ range . }}<li>{{ . | markdownify }}</li>{{ end }}</ol></details>{{ end }}
+{{ else }}
+  <p class="brief">{{ $d.brief }}</p>
+{{ end }}
+
+<div class="ovgrid">
+  <div class="grid" style="align-content:start">
+    <div class="cd">
+      <div class="lbl">Requirements{{ if not $f }} <span class="xs" style="text-transform:none;letter-spacing:0;font-weight:500">Soonest due first, across all features</span>{{ end }}</div>
+      {{ range first 6 $soon }}
+        {{ $r := index (where $d.requirements "n" .) 0 }}
+        <div class="row">
+          <a href="{{ printf "feature-%d/requirements/#r-%d" (int $r.feature) (int $r.n) | relURL }}" style="color:var(--fg);display:flex;gap:8px;min-width:0;flex:1;font-size:12.5px"><span class="xs" style="width:30px;flex:none">#{{ $r.n }}</span><span>{{ $r.title }}</span></a>
+          {{ if not $f }}{{ $rf := index (where $d.features "n" $r.feature) 0 }}<span class="xs" style="width:150px;flex:none">{{ $rf.title }}</span>{{ end }}
+          <span class="sm mu" style="width:52px;flex:none;text-align:right">{{ $r.target_text | default "—" }}</span>
+          {{ partial "pill.html" $r.status }}
+        </div>
+      {{ else }}<p class="mu sm" style="margin:0">No requirements yet.</p>{{ end }}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px">
+        {{ $more := sub (len $soon) 6 }}{{ if gt $more 0 }}<a class="sm" href="{{ printf "%srequirements/" $base | relURL }}" style="font-weight:600">+{{ $more }} more</a>{{ else }}<span></span>{{ end }}
+        <a class="hb-ib pri" href="{{ printf "%srequirements/" $base | relURL }}">View all requirements ›</a>
+      </div>
+    </div>
+    <div class="cd">
+      <div class="lbl">{{ partial "icon.html" "clock" }} What changed recently</div>
+      {{ range first 5 $recent }}
+        <div class="row"><span class="xs" style="width:70px;flex:none">{{ .when }}</span><span class="sm" style="flex:1">#{{ .n }} {{ .title }}</span>{{ if and (not $f) .feature }}{{ $rf := index (where $d.features "n" .feature) 0 }}<a class="xs" href="{{ printf "feature-%d/overview/" (int .feature) | relURL }}">{{ $rf.title }}</a>{{ end }}</div>
+      {{ else }}<p class="mu sm" style="margin:0">Nothing changed recently.</p>{{ end }}
+    </div>
+  </div>
+  <div class="grid" style="align-content:start">
+    <div class="cd">
+      <div class="lbl">Overall progress</div>
+      <div class="big">{{ $sum.Done }}<span class="mu" style="font-size:14px;font-weight:500"> of {{ $sum.total }} done</span></div>
+      <div class="bar" style="margin-top:10px" aria-hidden="true"><span style="width:{{ index $sum.pct "Done" }}%;background:var(--done)"></span><span style="width:{{ index $sum.pct "In progress" }}%;background:var(--prog)"></span><span style="width:{{ index $sum.pct "Overdue" }}%;background:var(--late)"></span></div>
+      <div style="display:grid;gap:5px;margin-top:12px">
+        {{ range slice "Done" "In progress" "Overdue" "To do" }}
+          <a class="sm" href="{{ printf "%srequirements/#status-%s" $base (urlize .) | relURL }}" style="display:flex;gap:8px;align-items:center;color:var(--muted)"><span class="dot d-{{ partial "cls.html" . }}"></span>{{ . }}<b style="margin-left:auto;color:var(--fg)">{{ index $sum . }}</b></a>
+        {{ end }}
+      </div>
+      {{ with $f }}{{ with .target }}<div class="xs" style="margin-top:10px">Target {{ $f.target_text }}</div>{{ end }}{{ end }}
+    </div>
+    <div class="cd">
+      <div class="lbl">{{ partial "icon.html" "alert" }} Open questions</div>
+      {{ range $qs }}
+        <div class="sm" style="padding:7px 0;border-bottom:1px solid var(--line)">{{ .q }}
+          {{ with .n }}{{ $r := index (where $d.requirements "n" .) 0 }}<div><a class="xs" href="{{ printf "feature-%d/requirements/#r-%d" (int $r.feature) (int .) | relURL }}">#{{ . }} {{ $r.title }}</a></div>
+          {{ else }}{{ if and (not $f) .feature }}{{ $rf := index (where $d.features "n" .feature) 0 }}<div><a class="xs" href="{{ printf "feature-%d/overview/" (int .feature) | relURL }}">{{ $rf.title }}</a></div>{{ end }}{{ end }}
+        </div>
+      {{ else }}<p class="mu sm" style="margin:0">No open questions.</p>{{ end }}
+    </div>
+  </div>
+</div>

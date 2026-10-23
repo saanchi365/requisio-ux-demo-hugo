@@ -1,0 +1,64 @@
+{{- /* Flowcharts: chart left with its details underneath; on the right every flowchart, the open one expanded to its steps. */ -}}
+{{ $d := .d }}{{ $f := .f }}
+{{ $cur := "all" }}{{ with $f }}{{ $cur = .n }}{{ end }}
+{{ $fcs := where $d.flowcharts "feature" "product" }}{{ if $f }}{{ $fcs = where $d.flowcharts "feature" $f.n }}{{ end }}
+{{/* previous / next flowchart page, in product order */}}
+{{ $order := $d.flow_order }}{{ $at := 0 }}
+{{ range $i, $x := $order }}{{ if eq (printf "%v" $x) (printf "%v" $cur) }}{{ $at = $i }}{{ end }}{{ end }}
+{{ $prev := index $order (mod (add $at (sub (len $order) 1)) (len $order)) }}{{ $next := index $order (mod (add $at 1) (len $order)) }}
+{{ $url := dict }}
+{{ range $order }}{{ if eq (printf "%v" .) "all" }}{{ $url = merge $url (dict "all" ("all/flowcharts/" | relURL)) }}{{ else }}{{ $url = merge $url (dict (printf "%v" .) (printf "feature-%d/flowcharts/" (int .) | relURL)) }}{{ end }}{{ end }}
+
+{{ if not $fcs }}
+  <div class="empty"><b>No flowchart yet</b>Add one to the flowcharts folder with this feature's number in its Feature line.</div>
+{{ else }}
+<div class="fcgrid"><div class="wfleft">
+  {{ range $i, $fc := $fcs }}
+  <div class="fcpane" data-fcid="{{ $fc.id }}" {{ if $i }}hidden{{ end }} {{ if eq $fc.feature "product" }}data-product{{ end }}>
+    <div class="bar-row"><div class="statusline">
+      <b>{{ $fc.title }}</b>{{ with $f }}{{ partial "pill.html" .status }}{{ end }}
+      {{ $steps := where $fc.steps "kind" "!=" "decision" }}{{ $decs := where $fc.steps "kind" "decision" }}
+      <span><span class="xs">Steps</span> {{ len $steps }}</span>{{ with $decs }}<span><span class="xs">Decisions</span> {{ len . }}</span>{{ end }}
+      <span style="display:inline-flex;gap:6px;align-items:center;margin-left:auto"><a class="hb-ib" href="{{ index $url (printf "%v" $prev) }}" aria-label="Previous flowchart">{{ partial "icon.html" "left" }}</a><span class="xs">{{ add $at 1 }} of {{ len $order }}</span><a class="hb-ib" href="{{ index $url (printf "%v" $next) }}" aria-label="Next flowchart">{{ partial "icon.html" "right" }}</a></span>
+    </div></div>
+    <div class="fccanvas"><div class="fcbar"><span class="lbl" style="margin:0">{{ if eq $fc.feature "product" }}Whole product{{ else }}{{ $f.title }}{{ end }}</span><span class="xs">{{ if eq $fc.feature "product" }}Click a box to open that feature's flowchart{{ else }}Dashed boxes are assumptions · diamonds are decisions{{ end }}</span>
+      <span class="fczoom"><button class="hb-ib" data-zoom="-1" aria-label="Zoom out">−</button><button class="hb-ib" data-zoom="1" aria-label="Zoom in">+</button><button class="hb-ib" data-zoom="0">Fit</button></span></div>
+      <div class="fcscroll"><pre class="mermaid">{{ $fc.mermaid }}</pre></div></div>
+    <div class="fcdetails" style="margin-top:10px">
+      <div class="fcmeta"><b class="sm">About this flowchart</b>{{ with $fc.created_text }}<span><span class="xs">Created</span> {{ . }}</span>{{ end }}{{ with $fc.updated_text }}<span><span class="xs">Updated</span> {{ . }}</span>{{ end }}
+        <span><span class="xs">Based on</span> {{ if $f }}<a href="{{ $f.url }}">#{{ $f.n }}</a> and its requirements{{ else }}all feature issues{{ end }}</span>
+        <span style="margin-left:auto;display:flex;gap:14px"><button class="hb-ib" style="padding:2px 9px" data-hide>Hide details</button><a class="sm" href="{{ $fc.github }}">Open in GitHub ↗</a></span></div>
+      <div class="fcnotes" data-details>
+        <div><div class="lbl" style="margin-bottom:4px">Description</div><span class="mu">{{ $fc.description | default "No description yet." }}</span></div>
+        <div><div class="lbl" style="margin-bottom:4px;color:var(--prog)">Open questions · {{ len $fc.questions }}</div>{{ range $fc.questions }}<div style="padding:2px 0">• {{ . }}</div>{{ else }}<span class="xs">No open questions.</span>{{ end }}
+          {{ with $fc.assumptions }}<div class="lbl" style="margin:10px 0 4px">Not confirmed yet</div>{{ range . }}<div style="padding:2px 0">• {{ . }}</div>{{ end }}{{ end }}</div>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+</div>
+
+<nav class="side-col" aria-label="Flowcharts">
+  <div class="lbl" style="margin-bottom:6px">Flowcharts</div>
+  {{ range where $d.flowcharts "feature" "product" }}
+    {{ if eq $cur "all" }}<div class="fcitem on"><button class="fctoggle" data-fccol aria-label="Show or hide the steps">{{ partial "icon.html" "down" }}</button><span class="fcname">◇ Whole product</span></div>{{ partial "fc-steps" . }}
+    {{ else }}<div class="fcitem"><span class="fctoggle"></span><a href="{{ "all/flowcharts/" | relURL }}">◇ Whole product</a></div>{{ end }}
+  {{ end }}
+  {{ range $d.stage_groups }}
+    {{ $shown := false }}
+    {{ range .features }}{{ $ff := index (where $d.features "n" .) 0 }}{{ if $ff.flowcharts }}
+      {{ if not $shown }}<div class="fcgrp">{{ $ff.stage }}</div>{{ $shown = true }}{{ end }}
+      {{ $q := len $ff.questions }}
+      {{ if eq $cur $ff.n }}
+        {{ range $i, $fc := where $d.flowcharts "feature" $ff.n }}
+          <div class="fcitem on"><button class="fctoggle" data-fccol aria-label="Show or hide the steps">{{ partial "icon.html" "down" }}</button><button class="fcname" data-fc="{{ $fc.id }}"><span class="dot d-{{ partial "cls.html" $ff.status }}"></span>{{ if gt (len $ff.flowcharts) 1 }}{{ $fc.title }}{{ else }}{{ $ff.title }}{{ end }}</button>{{ with $fc.questions }}<span class="pl p-prog" style="font-size:10px">{{ len . }}?</span>{{ end }}</div>
+          {{ partial "fc-steps" $fc }}
+        {{ end }}
+      {{ else }}
+        <div class="fcitem"><span class="fctoggle"></span><a href="{{ printf "feature-%d/flowcharts/" (int $ff.n) | relURL }}"><span class="dot d-{{ partial "cls.html" $ff.status }}"></span>{{ $ff.title }}</a>{{ if gt $q 0 }}<span class="pl p-prog" style="font-size:10px">{{ $q }}?</span>{{ end }}</div>
+      {{ end }}
+    {{ end }}{{ end }}
+  {{ end }}
+  <div class="xs" style="margin-top:10px">Amber number = open questions</div>
+</nav></div>
+{{ end }}

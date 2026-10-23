@@ -1,0 +1,36 @@
+{{ $d := hugo.Data.handbook -}}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if .IsHome }}{{ $d.name }}{{ else }}{{ .Title }} · {{ $d.name }}{{ end }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{{ "handbook.css" | relURL }}">
+  <style>body { margin: 0; background: var(--bg) }</style>
+</head>
+<body class="hb">
+  <header class="hb-top">
+    <button class="hb-ib menu-btn" id="hb-menu-btn" aria-label="Open the feature menu">{{ partial "icon.html" "menu" }}</button>
+    <a class="hb-logo" href="{{ "all/overview/" | relURL }}">{{ partial "icon.html" "book" }} {{ $d.name }}</a>
+    <div class="hb-srch">{{ partial "icon.html" "search" }}<input id="hb-q" type="search" placeholder="Search features and requirements" autocomplete="off" aria-label="Search"><div class="hb-res" id="hb-res" hidden></div></div>
+    <div class="hb-rt">
+      <a class="hb-ib" href="{{ "all/comments/" | relURL }}" aria-label="All comments">{{ partial "icon.html" "msgs" }}<span class="hb-bdg">{{ len $d.comments }}</span></a>
+      <a class="hb-ib" href="https://github.com/{{ $d.repo }}">GitHub</a>
+    </div>
+  </header>
+  <div class="hb-shell">
+    <nav class="hb-side" id="hb-side" aria-label="Features">{{ partial "menu.html" . }}</nav>
+    <main class="hb-main">{{ block "main" . }}{{ end }}</main>
+  </div>
+  {{- /* data the page's script needs: the search list and which feature each requirement belongs to */ -}}
+  {{ $idx := slice }}
+  {{ range $d.features }}{{ $idx = $idx | append (dict "t" .title "k" "Feature" "u" (printf "feature-%d/overview/" (int .n) | relURL)) }}{{ end }}
+  {{ range $d.requirements }}{{ $idx = $idx | append (dict "t" (printf "#%d %s" (int .n) .title) "k" "Requirement" "u" (printf "feature-%d/requirements/#r-%d" (int .feature) (int .n) | relURL)) }}{{ end }}
+  {{ range $d.flowcharts }}{{ if ne .feature "product" }}{{ $idx = $idx | append (dict "t" .title "k" "Flowchart" "u" (printf "feature-%d/flowcharts/" (int .feature) | relURL)) }}{{ end }}{{ end }}
+  <script id="hb-data" type="application/json">{{ dict "index" $idx "reqFeature" $d.req_feature "base" ("" | relURL) | jsonify | safeJS }}</script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+  <script src="{{ "handbook.js" | relURL }}"></script>
+</body>
+</html>

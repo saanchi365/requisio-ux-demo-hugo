@@ -1,0 +1,16 @@
+{{- $d := hugo.Data.handbook -}}
+{{- $scope := "all" }}{{ with .Params.scope }}{{ $scope = . }}{{ end -}}
+{{- $tab := "overview" }}{{ with .Params.tab }}{{ $tab = . }}{{ end -}}
+<details class="hb-users" {{ if .Params.doc }}open{{ end }}>
+  <summary>{{ partial "icon.html" "users" }} About users <span style="margin-left:auto" class="chev">{{ partial "icon.html" "down" }}</span></summary>
+  {{ range $k, $v := $d.users }}<a class="hb-sl sub {{ if eq $k $.Params.doc }}on{{ end }}" href="{{ printf "users/%s/" $k | relURL }}">{{ $v.title }}</a>{{ end }}
+</details>
+<div style="height:10px"></div>
+<a class="hb-sl {{ if and (eq $scope "all") (not .Params.doc) }}on{{ end }}" href="{{ printf "all/%s/" $tab | relURL }}">{{ partial "icon.html" "layers" }} All features<span class="hb-cc">{{ len $d.requirements }}</span></a>
+{{ range $d.stage_groups }}
+  <div class="hb-g">{{ .stage }}</div>
+  {{ range .features }}
+    {{ $f := index (where $d.features "n" .) 0 }}
+    <a class="hb-sl {{ if eq $scope $f.n }}on{{ end }}" href="{{ printf "feature-%d/%s/" (int $f.n) $tab | relURL }}"><span class="dot d-{{ partial "cls.html" $f.status }}"></span>{{ $f.title }}{{ with $f.comment_list }}<span class="hb-cc">{{ len . }}</span>{{ end }}</a>
+  {{ end }}
+{{ end }}

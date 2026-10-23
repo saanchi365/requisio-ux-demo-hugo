@@ -1,0 +1,77 @@
+{{- /* Wireframes: slideshow (screen left, notes under it, flow map right) and flow view. The page's script switches screens. */ -}}
+{{ $d := .d }}{{ $f := .f }}
+{{ $files := slice }}
+{{ if $f }}{{ $files = $f.wireframes }}{{ else }}{{ range $d.feature_order }}{{ $ff := index (where $d.features "n" .) 0 }}{{ range $ff.wireframes }}{{ $files = $files | append . }}{{ end }}{{ end }}{{ end }}
+{{ if not $files }}
+  <div class="empty"><b>No wireframes yet</b>Screens appear here, in flowchart order, once they are added to the wireframes folder.</div>
+{{ else }}
+<div data-wf data-total="{{ len $files }}">
+  <div class="bar-row"><span class="xs" style="flex:1">Screens in flowchart order{{ if not $f }}, feature by feature{{ end }}</span>
+    <div class="seg" role="tablist" aria-label="Wireframe view"><button class="on" data-mode="slideshow" role="tab">Slideshow</button><button data-mode="flow" role="tab">Flow view</button></div></div>
+
+  <div data-view="slideshow"><div class="wfgrid"><div class="wfleft">
+    {{ range $i, $file := $files }}
+      {{ $w := index (where $d.wireframes "file" $file) 0 }}
+      {{ $r := false }}{{ with where $d.requirements "n" $w.n }}{{ $r = index . 0 }}{{ end }}
+      {{ $fn := $w.n }}{{ with $r }}{{ $fn = .feature }}{{ end }}
+      {{ $wf := index (where $d.features "n" $fn) 0 }}
+      <div class="slide" data-i="{{ $i }}" data-file="{{ $file }}" data-feature="{{ $fn }}" {{ if $i }}hidden{{ end }}>
+        <div class="statusline" style="margin-bottom:10px">
+          {{ with $r }}<b>#{{ .n }} {{ .title }}</b>{{ partial "pill.html" .status }}<span><span class="xs">Target</span> {{ .target_text | default "—" }}</span><span><span class="xs">Assigned</span> {{ with .assignees }}{{ delimit . ", " }}{{ else }}Not assigned{{ end }}</span><span>{{ partial "icon.html" "msgs" }} {{ .comment_count }} comments</span>
+          {{ else }}<b>#{{ $w.n }} {{ $wf.title }}</b>{{ end }}
+          {{ if not $f }}<span class="pl" style="background:var(--accent-soft);color:var(--accent)">{{ $wf.title }}</span>{{ end }}
+          {{ if $w.sample }}<span class="xs">Sample screen</span>{{ end }}
+        </div>
+        <div class="wfstage">
+          <div class="wftitle"><span>{{ $w.title }}</span><span class="xs">{{ $wf.title }}</span></div>
+          <img class="wfimg" loading="lazy" src="{{ if $w.sample }}{{ $w.src | relURL }}{{ else }}{{ $w.src }}{{ end }}" alt="Wireframe: {{ $w.title }}">
+          <button class="wfarw" style="left:-16px" data-step="-1" aria-label="Previous screen">{{ partial "icon.html" "left" }}</button>
+          <button class="wfarw" style="right:-16px" data-step="1" aria-label="Next screen">{{ partial "icon.html" "right" }}</button>
+        </div>
+        {{ if or $w.description $w.questions }}
+          <div class="notes {{ if and $w.description $w.questions }}two{{ end }}">
+            {{ with $w.description }}<div><div class="lbl" style="margin-bottom:4px">Description</div><span class="mu">{{ . }}</span></div>{{ end }}
+            {{ with $w.questions }}<div><div class="lbl" style="margin-bottom:4px;color:var(--prog)">Open questions · {{ len . }}</div>{{ range . }}<div style="padding:2px 0">• {{ . }}</div>{{ end }}</div>{{ end }}
+          </div>
+        {{ else }}<div class="notes"><span class="xs" style="font-size:12.5px">No description or open questions for this screen.</span></div>{{ end }}
+      </div>
+    {{ end }}
+    <div class="pager"><button class="hb-ib" data-step="-1" aria-label="Previous screen">{{ partial "icon.html" "left" }}</button><b data-pager>1 / {{ len $files }}</b><button class="hb-ib" data-step="1" aria-label="Next screen">{{ partial "icon.html" "right" }}</button><span class="xs">Arrow keys work too</span></div>
+  </div>
+
+  <nav class="side-col" aria-label="Flow map">
+    {{ if $f }}
+      <div class="lbl" style="margin-bottom:6px">Flow map · {{ $f.title }}</div>
+      {{ range $i, $file := $files }}{{ $w := index (where $d.wireframes "file" $file) 0 }}
+        <button class="mapsc {{ if eq $i 0 }}on{{ end }}" data-go="{{ $i }}">{{ $i | add 1 }}. {{ $w.title }}</button>{{ end }}
+      <div class="xs" style="margin-top:10px">Click a screen to open it</div>
+    {{ else }}
+      <div class="lbl" style="margin-bottom:6px">Flow map · whole product</div>
+      {{ $k := 0 }}
+      {{ range $d.stage_groups }}
+        <div class="mapstage">{{ .stage }}</div>
+        {{ range .features }}{{ $ff := index (where $d.features "n" .) 0 }}
+          <details class="mapft" data-feature="{{ $ff.n }}" {{ if eq $k 0 }}{{ if $ff.wireframes }}open{{ end }}{{ end }}>
+            <summary><span class="chev">{{ partial "icon.html" "right" }}</span><span class="dot d-{{ partial "cls.html" $ff.status }}"></span>{{ $ff.title }}<span class="xs" style="margin-left:auto">{{ len $ff.wireframes }}</span></summary>
+            {{ range $ff.wireframes }}{{ $w := index (where $d.wireframes "file" .) 0 }}<button class="mapsc {{ if eq $k 0 }}on{{ end }}" data-go="{{ $k }}">{{ $w.title }}</button>{{ $k = add $k 1 }}{{ end }}
+          </details>
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  </nav></div></div>
+
+  <div data-view="flow" hidden>
+    {{ if $f }}
+      <div class="cd" style="padding:18px"><div class="strip">{{ range $i, $file := $files }}{{ $w := index (where $d.wireframes "file" $file) 0 }}{{ if $i }}<span class="xs">{{ partial "icon.html" "arrow" }}</span>{{ end }}<a class="thumb" href="#" data-go="{{ $i }}" data-to-slides><img loading="lazy" src="{{ if $w.sample }}{{ $w.src | relURL }}{{ else }}{{ $w.src }}{{ end }}" alt=""><span>{{ $i | add 1 }}. {{ $w.title }}</span></a>{{ end }}</div></div>
+      <p class="xs">The screens in the order of the flowchart. Click one to open it in the slideshow.</p>
+    {{ else }}
+      <div class="lanes">{{ $k := 0 }}
+        {{ range $d.feature_order }}{{ $ff := index (where $d.features "n" .) 0 }}
+          <div class="lane"><div><a href="{{ printf "feature-%d/wireframes/" (int $ff.n) | relURL }}" style="font-weight:600;color:var(--fg);display:flex;gap:6px;align-items:center"><span class="dot d-{{ partial "cls.html" $ff.status }}"></span>{{ $ff.title }}</a><div class="xs">{{ len $ff.wireframes }} screens</div></div>
+            <div class="strip">{{ range $j, $file := $ff.wireframes }}{{ $w := index (where $d.wireframes "file" $file) 0 }}{{ if $j }}<span class="xs">{{ partial "icon.html" "arrow" }}</span>{{ end }}<a class="thumb" href="#" data-go="{{ $k }}" data-to-slides><img loading="lazy" src="{{ if $w.sample }}{{ $w.src | relURL }}{{ else }}{{ $w.src }}{{ end }}" alt=""><span>{{ $w.title }}</span></a>{{ $k = add $k 1 }}{{ else }}<span class="xs">No wireframes yet</span>{{ end }}</div></div>
+        {{ end }}
+      </div>
+    {{ end }}
+  </div>
+</div>
+{{ end }}

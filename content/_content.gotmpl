@@ -1,0 +1,16 @@
+{{/* Makes every page of the handbook from data/handbook.json:
+     all features and each feature × the five tabs, plus the three About users pages. */}}
+{{ $d := hugo.Data.handbook }}
+{{ $tabs := slice "overview" "wireframes" "flowcharts" "requirements" "comments" }}
+{{ range $tabs }}
+  {{ $.AddPage (dict "path" (printf "all/%s" .) "title" "All features" "kind" "page" "params" (dict "scope" "all" "tab" .)) }}
+{{ end }}
+{{ range $d.features }}
+  {{ $f := . }}
+  {{ range $tabs }}
+    {{ $.AddPage (dict "path" (printf "feature-%d/%s" (int $f.n) .) "title" $f.title "kind" "page" "params" (dict "scope" $f.n "tab" .)) }}
+  {{ end }}
+{{ end }}
+{{ range $k, $v := $d.users }}
+  {{ $.AddPage (dict "path" (printf "users/%s" $k) "title" $v.title "kind" "page" "params" (dict "doc" $k) "content" (dict "mediaType" "text/markdown" "value" $v.html)) }}
+{{ end }}
