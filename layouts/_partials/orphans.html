@@ -1,0 +1,27 @@
+{{- /* Requirements that are not inside any feature: a plain list, because their level can't be known. */ -}}
+{{ $d := hugo.Data.handbook }}
+{{ $list := $d.orphans | default slice }}
+<nav class="hb-crumb" aria-label="Breadcrumb"><a href="{{ "all/overview/" | relURL }}">All features</a> › <span>Not under a feature</span></nav>
+<h1>Not under a feature</h1>
+<p class="brief">Requirements that aren't inside any feature on GitHub yet. Open each one and add it to the right feature (on the feature: Sub-issues → Add existing issue).</p>
+{{ if $list }}
+<div class="tw" style="margin-top:16px"><table>
+  <thead><tr><th>#</th><th>Requirement</th><th>Status</th><th>Target</th><th>Assigned to</th><th>Given by</th><th>Priority</th><th>Comments</th><th></th></tr></thead>
+  <tbody>
+  {{ range $list }}
+    <tr>
+      <td class="num">#{{ .n }}</td><td>{{ .title }}</td><td>{{ partial "pill.html" .status }}</td>
+      <td class="num">{{ .target_text | default "—" }}</td>
+      <td>{{ with .assignees }}{{ delimit . ", " }}{{ else }}<span class="xs">Not assigned</span>{{ end }}</td>
+      <td>{{ .given_by | default "—" }}</td><td>{{ .priority | default "—" }}</td>
+      <td class="num">{{ if .comment_count }}{{ .comment_count }}{{ else }}<span class="xs">—</span>{{ end }}</td>
+      <td><a href="{{ .url }}">Open on GitHub ↗</a></td>
+    </tr>
+  {{ end }}
+  </tbody></table></div>
+{{ else }}
+  <div class="empty" style="margin-top:16px"><b>Nothing here</b>Every requirement is inside a feature.</div>
+{{ end }}
+<footer class="foot"><span>Status colours:</span>
+  <span><span class="dot d-done"></span>Done</span><span><span class="dot d-prog"></span>In progress</span><span><span class="dot d-late"></span>Overdue</span><span><span class="dot d-todo"></span>To do</span>
+  <span style="margin-left:auto">Built with Hugo · data from <a href="https://github.com/{{ $d.repo }}">{{ $d.repo }}</a></span></footer>

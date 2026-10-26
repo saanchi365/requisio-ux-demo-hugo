@@ -7,6 +7,7 @@
 </details>
 <div style="height:10px"></div>
 <a class="hb-sl {{ if and (eq $scope "all") (not .Params.doc) }}on{{ end }}" href="{{ printf "all/%s/" $tab | relURL }}">{{ partial "icon.html" "layers" }} All features<span class="hb-cc">{{ len $d.requirements }}</span></a>
+{{ $orph := len ($d.orphans | default slice) }}
 {{ range $d.stage_groups }}
   <div class="hb-g">{{ .stage }}</div>
   {{ range .features }}
@@ -14,3 +15,5 @@
     <a class="hb-sl {{ if eq $scope $f.n }}on{{ end }}" href="{{ printf "feature-%d/%s/" (int $f.n) $tab | relURL }}"><span class="dot d-{{ partial "cls.html" $f.status }}"></span>{{ $f.title }}{{ with $f.comment_list }}<span class="hb-cc">{{ len . }}</span>{{ end }}</a>
   {{ end }}
 {{ end }}
+<div class="hb-g">Other</div>
+<a class="hb-sl {{ if .Params.orphans }}on{{ end }}" href="{{ "not-under-a-feature/" | relURL }}"><span class="dot d-todo"></span>Not under a feature<span class="hb-cc">{{ $orph }}</span></a>

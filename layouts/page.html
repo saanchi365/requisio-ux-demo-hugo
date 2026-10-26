@@ -1,5 +1,7 @@
 {{ define "main" }}
-{{ if .Params.doc }}
+{{ if .Params.orphans }}
+  {{ partial "orphans.html" . }}
+{{ else if .Params.doc }}
   {{ $d := hugo.Data.handbook }}
   <nav class="hb-crumb"><a href="{{ "all/overview/" | relURL }}">{{ $d.name }}</a> › <span>About users</span></nav>
   <h1>{{ .Title }}</h1>

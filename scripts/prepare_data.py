@@ -56,7 +56,8 @@ def when(d):
     return date.fromisoformat(d[:10]) if d else None
 
 
-for r in data["requirements"] + data["features"]:
+data.setdefault("orphans", [])
+for r in data["requirements"] + data["features"] + data["orphans"]:
     t = when(r.get("target"))
     if r["status"] != "Done" and t and t < today:
         r["status"] = "Overdue"
@@ -90,7 +91,7 @@ STATUSES = ["Done", "In progress", "Overdue", "To do"]
 comments_on = {}
 for c in data["comments"]:
     comments_on.setdefault(c["issue"], []).append(c)
-for r in data["requirements"]:
+for r in data["requirements"] + data["orphans"]:
     r["comment_count"] = len(comments_on.get(r["n"], []))
     r["wireframe"] = next((w["file"] for w in data["wireframes"] if w["n"] == r["n"]), "")
 

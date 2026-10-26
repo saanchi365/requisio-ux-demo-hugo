@@ -11,6 +11,7 @@
     {{ $.AddPage (dict "path" (printf "feature-%d/%s" (int $f.n) .) "title" $f.title "kind" "page" "params" (dict "scope" $f.n "tab" .)) }}
   {{ end }}
 {{ end }}
+{{ $.AddPage (dict "path" "not-under-a-feature" "title" "Not under a feature" "kind" "page" "params" (dict "orphans" true)) }}
 {{ range $k, $v := $d.users }}
   {{ $.AddPage (dict "path" (printf "users/%s" $k) "title" $v.title "kind" "page" "params" (dict "doc" $k) "content" (dict "mediaType" "text/markdown" "value" $v.html)) }}
 {{ end }}
