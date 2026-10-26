@@ -81,10 +81,10 @@ for f in data["features"]:
     mine.sort(key=lambda w: (place(w), w["file"]))
     f["wireframes"] = [w["file"] for w in mine]
     f["flowcharts"] = [fc["id"] for fc in data["flowcharts"] if fc["feature"] == f["n"]]
-    f["stage"] = f["stage"] if f["stage"] in data["stages"] else "Other"
+    f["stage"] = f["stage"] if f["stage"] in data["stages"] else "No stage chosen"
     f["slug"] = f"feature-{f['n']}"
 data["stage_groups"] = [dict(stage=s, features=[f["n"] for f in data["features"] if f["stage"] == s])
-                        for s in data["stages"] + ["Other"] if any(f["stage"] == s for f in data["features"])]
+                        for s in data["stages"] + ["No stage chosen"] if any(f["stage"] == s for f in data["features"])]
 
 # ---- summaries both websites only have to display
 STATUSES = ["Done", "In progress", "Overdue", "To do"]

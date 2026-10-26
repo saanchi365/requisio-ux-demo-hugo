@@ -1,7 +1,7 @@
-{{- /* Requirements: the same table for all features and one feature; open questions underneath. */ -}}
+{{- /* Requirements: the same table for all features and one feature. */ -}}
 {{ $d := .d }}{{ $f := .f }}
-{{ $list := $d.requirements }}{{ $sum := $d.summary }}{{ $qs := $d.all_questions }}
-{{ if $f }}{{ $list = where $d.requirements "feature" $f.n }}{{ $sum = $f.summary }}{{ $qs = $f.all_questions }}{{ end }}
+{{ $list := $d.requirements }}{{ $sum := $d.summary }}
+{{ if $f }}{{ $list = where $d.requirements "feature" $f.n }}{{ $sum = $f.summary }}{{ end }}
 <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px">
   <div class="cd"><div class="lbl">Overdue</div><div class="big" style="color:var(--late)">{{ $sum.Overdue }}</div></div>
   <div class="cd"><div class="lbl">Due this week</div><div class="big">{{ $sum.due_soon }}</div></div>
@@ -30,9 +30,4 @@
     {{ end }}
     </tbody></table></div>
   {{ else }}<div class="empty"><b>No requirements yet</b>Add them as sub-issues of this feature on GitHub.</div>{{ end }}
-</div>
-<div class="cd" style="margin-top:14px"><div class="lbl">{{ partial "icon.html" "alert" }} Open questions{{ with $qs }} · {{ len . }}{{ end }}</div>
-  {{ range $qs }}
-    <div class="row"><span class="sm">{{ .q }}</span>{{ with .n }}{{ $r := index (where $d.requirements "n" .) 0 }}<a class="xs" href="#r-{{ . }}" data-hl="{{ . }}" style="text-align:right">#{{ . }} {{ $r.title }}</a>{{ else }}<span class="xs">{{ if $f }}Whole feature{{ else }}{{ with .feature }}{{ $rf := index (where $d.features "n" .) 0 }}{{ $rf.title }}{{ end }}{{ end }}</span>{{ end }}</div>
-  {{ else }}<p class="mu sm" style="margin:0">No open questions on these requirements.</p>{{ end }}
 </div>
